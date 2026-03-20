@@ -16,18 +16,18 @@ ChatFlow is a real-time, full-stack communication platform built with the MERN s
 
 ## Modern UI/UX
 
-Theme Support: 30+ themes powered by DaisyUI and TailwindCSS with live previews.
-Glassmorphism: Elegant, blurred UI elements for a premium feel.
-Responsive Design: Fully optimized for mobile, tablet, and desktop views.
-Profile Management: Users can update avatars (Cloudinary integration) and account details.
+- Theme Support: 30+ themes powered by DaisyUI and TailwindCSS with live previews.
+- Glassmorphism: Elegant, blurred UI elements for a premium feel.
+- Responsive Design: Fully optimized for mobile, tablet, and desktop views.
+- Profile Management: Users can update avatars (Cloudinary integration) and account details.
 
 ## AI Intelligence
 Gemini AI Assistant: Integrated Google's Gemini 2.5 Flash to provide real-time conversations.
 
 ## Smart Search & Discovery
 
-Global User Search: Real-time filtering to find and connect with users instantly across the network.
-Filtered Views: Toggle between "Online Only" to streamline your chat experience.
+- Global User Search: Real-time filtering to find and connect with users instantly across the network.
+- Filtered Views: Toggle between "Online Only" to streamline your chat experience.
 
 ## Tech Stack
 
