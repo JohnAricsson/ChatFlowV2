@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import {
   Eye,
@@ -13,8 +13,11 @@ import { Link } from "react-router-dom";
 import Lottie from "lottie-react";
 import loginAnimation from "../assets/animations/Login.json";
 import toast from "react-hot-toast";
+import VerifyEmailPage from "./VerifyEmailPage";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
+  const [showVerify, setShowVerify] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -22,15 +25,45 @@ const LoginPage = () => {
   });
   const { login, loginWithGoogle, loginWithFacebook, isLoggingIn } =
     useAuthStore();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const errorType = searchParams.get("error");
 
+    if (errorType) {
+      const errorMessages = {
+        duplicate_email:
+          "This email is already linked to another login method (Google, Facebook, or Email).",
+        google_failed: "Google authentication was cancelled or failed.",
+        facebook_failed: "Facebook authentication was cancelled or failed.",
+        server_error: "A server error occurred. Please try again later.",
+        auth_failed: "Authentication failed. Please try again.",
+      };
+
+      const message =
+        errorMessages[errorType] || "An unexpected error occurred.";
+
+      toast.error(message, {
+        duration: 5000,
+        position: "top-center",
+      });
+
+      navigate("/login", { replace: true });
+    }
+  }, [searchParams, navigate]);
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
       return toast.error("Please fill in all fields");
     }
-    await login(formData);
+    const result = await login(formData);
+    if (result?.unverified) {
+      setShowVerify(true);
+    }
   };
-
+  if (showVerify) {
+    return <VerifyEmailPage email={formData.email} />;
+  }
   return (
     <div className="min-h-screen bg-base-300 relative overflow-hidden flex items-center justify-center p-4">
       <div className="absolute top-[-10%] right-[-10%] w-[45%] h-[45%] rounded-full bg-secondary/20 blur-[120px] animate-pulse" />

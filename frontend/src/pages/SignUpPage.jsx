@@ -14,18 +14,19 @@ import { Link } from "react-router-dom";
 import Lottie from "lottie-react";
 import signUpAnimation from "../assets/animations/Profile.json";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import VerifyEmailPage from "./VerifyEmailPage";
 
 const SignUpPage = () => {
-  const navigate = useNavigate();
-
+  const [showVerify, setShowVerify] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
   });
-  const { signup, isSigningUp } = useAuthStore();
+
+  const { signup, isSigningUp, loginWithGoogle, loginWithFacebook } =
+    useAuthStore();
 
   const validateForm = () => {
     if (!formData.fullName.trim()) return toast.error("Full name is required");
@@ -43,8 +44,12 @@ const SignUpPage = () => {
     if (validateForm() !== true) return;
 
     const success = await signup(formData);
-    if (success) navigate("/login");
+    if (success) setShowVerify(true);
   };
+
+  if (showVerify) {
+    return <VerifyEmailPage email={formData.email} />;
+  }
 
   return (
     <div className="min-h-screen bg-base-300 relative overflow-hidden flex items-center justify-center p-4">
@@ -53,16 +58,6 @@ const SignUpPage = () => {
 
       <div className="max-w-5xl w-full grid lg:grid-cols-2 bg-base-100/50 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden z-10">
         <div className="p-8 lg:p-12 flex flex-col justify-center order-2 lg:order-1">
-          <div className="flex lg:hidden justify-center mb-6">
-            <div className="w-64 h-64">
-              <Lottie
-                animationData={signUpAnimation}
-                loop={true}
-                className="w-full h-full drop-shadow-2xl"
-              />
-            </div>
-          </div>
-
           <div className="w-full max-w-md mx-auto space-y-8">
             <div className="text-left">
               <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-gradient-to-tr from-primary to-secondary p-0.5 mb-4">
@@ -74,7 +69,7 @@ const SignUpPage = () => {
                 Join the flow.
               </h1>
               <p className="text-base-content/60 mt-2">
-                Create an account to start chatting with the world.
+                Create an account to start chatting.
               </p>
             </div>
 
@@ -172,10 +167,7 @@ const SignUpPage = () => {
 
             <div className="grid grid-cols-2 gap-3 mb-8">
               <button
-                onClick={() =>
-                  (window.location.href =
-                    "http://localhost:5001/api/auth/facebook")
-                }
+                onClick={loginWithFacebook}
                 className="flex items-center justify-center py-3 cursor-pointer bg-blue-600 border border-blue-700 rounded-xl hover:bg-blue-700 text-white"
               >
                 <svg
@@ -189,10 +181,7 @@ const SignUpPage = () => {
               </button>
 
               <button
-                onClick={() =>
-                  (window.location.href =
-                    "http://localhost:5001/api/auth/google")
-                }
+                onClick={loginWithGoogle}
                 className="flex items-center justify-center py-3 cursor-pointer bg-white border border-gray-300 rounded-xl hover:bg-gray-300 text-gray-800"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 533.5 544.3">
@@ -240,8 +229,7 @@ const SignUpPage = () => {
               Step into the future of chat.
             </h2>
             <p className="text-base-content/70">
-              Experience seamless real-time communication with encrypted privacy
-              and stunning media sharing.
+              Experience real-time encrypted communication.
             </p>
           </div>
         </div>

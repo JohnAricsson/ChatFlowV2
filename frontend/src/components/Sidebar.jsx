@@ -4,6 +4,13 @@ import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./SidebarSkeleton";
 import { Users, Circle, Pin, PinOff, Trash2, Star } from "lucide-react";
 
+const GEMINI_BOT = {
+  _id: "gemini-ai-bot",
+  fullName: "AI CHATBOT",
+  profilePic: "/gemini-logo.webp",
+  isAI: true,
+};
+
 const Sidebar = () => {
   const {
     getUsers,
@@ -23,9 +30,16 @@ const Sidebar = () => {
     getUsers();
   }, [getUsers]);
 
-  const filteredUsers = users
-    .filter((user) => (showOnlineOnly ? onlineUsers.includes(user._id) : true))
+  const filteredUsers = [GEMINI_BOT, ...users]
+    .filter((user) => {
+      if (user._id === "gemini-ai-bot") return true;
+
+      return showOnlineOnly ? onlineUsers.includes(user._id) : true;
+    })
     .sort((a, b) => {
+      if (a._id === "gemini-ai-bot") return -1;
+      if (b._id === "gemini-ai-bot") return 1;
+
       const aPinned = pinnedChats?.includes(a._id) || false;
       const bPinned = pinnedChats?.includes(b._id) || false;
       return bPinned - aPinned;
@@ -70,8 +84,10 @@ const Sidebar = () => {
       <div className="overflow-y-auto w-full py-2 px-2 custom-scrollbar">
         {filteredUsers.map((user) => {
           const isPinned = pinnedChats?.includes(user._id);
-          const isOnline = onlineUsers.includes(user._id);
-
+          const isOnline =
+            user._id === "gemini-ai-bot"
+              ? true
+              : onlineUsers.includes(user._id);
           return (
             <div key={user._id} className="relative group">
               <button

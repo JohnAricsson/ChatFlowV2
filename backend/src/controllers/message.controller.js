@@ -10,13 +10,30 @@ export const getUsersForSidebar = async (req, res) => {
 
     const me = await User.findById(myId).select("pinnedChats");
 
-    const users = await User.find({ _id: { $ne: myId } }).select("-password");
+    const messages = await Message.find({
+      $or: [{ senderId: myId }, { receiverId: myId }],
+    });
+
+    const chattedUserIds = messages.map((msg) =>
+      msg.senderId.toString() === myId.toString()
+        ? msg.receiverId
+        : msg.senderId,
+    );
+
+    const uniqueChattedIds = [
+      ...new Set(chattedUserIds.map((id) => id.toString())),
+    ];
+
+    const users = await User.find({
+      _id: { $in: uniqueChattedIds },
+    }).select("-password");
 
     res.status(200).json({
       users: users,
-      pinnedChats: me.pinnedChats || [],
+      pinnedChats: me?.pinnedChats || [],
     });
   } catch (error) {
+    console.error("Error in getUsersForSidebar:", error.message);
     res.status(500).json({ message: "Server error" });
   }
 };

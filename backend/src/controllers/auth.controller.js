@@ -3,10 +3,12 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
 import Message from "../models/message.model.js";
+import { sendVerificationEmail } from "../lib/mail.js";
 
 export const signup = async (req, res) => {
   const { fullName, password } = req.body;
   const email = req.body.email?.toLowerCase();
+
   try {
     if (!fullName || !email || !password) {
       return res.status(400).json({ message: "All fields are required!" });
@@ -17,31 +19,39 @@ export const signup = async (req, res) => {
         .json({ message: "Password must be at least 6 characters" });
     }
 
-    const user = await User.findOne({ email });
-
-    if (user) return res.status(400).json({ message: "Email already exists" });
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ message: "Email already exists" });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
     const newUser = new User({
-      fullName: fullName,
-      email: email,
+      fullName,
+      email,
       password: hashedPassword,
+      verificationOTP: otp,
+      otpExpires: Date.now() + 10 * 60 * 1000,
+      isVerified: false,
     });
 
-    if (newUser) {
-      generateToken(newUser._id, res);
-      await newUser.save();
+    await newUser.save();
+
+    try {
+      await sendVerificationEmail(email, otp);
+
       res.status(201).json({
-        _id: newUser._id,
-        fullName: newUser.fullName,
+        message:
+          "Registration successful. Please check your email for the verification code.",
         email: newUser.email,
-        profilePic: newUser.profilePic,
-        createdAt: newUser.createdAt,
       });
-    } else {
-      res.status(400).json({ message: "Invalid user data" });
+    } catch (mailError) {
+      console.log("Mail Error:", mailError);
+      res
+        .status(500)
+        .json({ message: "User created but failed to send email." });
     }
   } catch (error) {
     console.log("Error in sign up controller", error.message);
@@ -50,39 +60,29 @@ export const signup = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const email = req.body.email?.toLowerCase();
-  const { password } = req.body;
-
+  const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    if (!user.password) {
-      return res.status(400).json({
-        message:
-          "This account was created using Google or Facebook. Please use social login.",
+    const isSocialUser = user.googleId || user.facebookId;
+
+    if (!user.isVerified && !isSocialUser) {
+      return res.status(401).json({
+        message: "Please verify your email to continue.",
+        unverified: true,
       });
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
+    if (!isPasswordCorrect)
       return res.status(400).json({ message: "Invalid credentials" });
-    }
 
     generateToken(user._id, res);
-
-    res.status(200).json({
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      profilePic: user.profilePic,
-    });
+    res.status(200).json(user);
   } catch (error) {
-    console.log("Error in login controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -184,5 +184,39 @@ export const checkAuth = (req, res) => {
   } catch (error) {
     console.log("Error in checkAuth controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const verifyEmail = async (req, res) => {
+  const { email, code } = req.body;
+  try {
+    const user = await User.findOne({
+      email,
+      verificationOTP: code,
+      otpExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired code" });
+    }
+
+    user.isVerified = true;
+    user.verificationOTP = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+
+    generateToken(user._id, res);
+
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      profilePic: user.profilePic,
+      createdAt: user.createdAt,
+      message: "Email verified successfully",
+    });
+  } catch (error) {
+    console.log("Error in verifyEmail:", error.message);
+    res.status(500).json({ message: "Server error" });
   }
 };

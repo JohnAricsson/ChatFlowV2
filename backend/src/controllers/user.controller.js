@@ -5,8 +5,11 @@ export const searchUsers = async (req, res) => {
     const { query } = req.query;
     const currentUserId = req.user._id;
 
+    if (!query) return res.status(200).json([]);
+
     const users = await User.find({
       _id: { $ne: currentUserId },
+      isVerified: true,
       $or: [
         { fullName: { $regex: query, $options: "i" } },
         { email: { $regex: query, $options: "i" } },
@@ -15,10 +18,10 @@ export const searchUsers = async (req, res) => {
 
     res.status(200).json(users);
   } catch (error) {
+    console.error("Error in searchUsers:", error.message);
     res.status(500).json({ message: "Search failed" });
   }
 };
-
 export const togglePinChat = async (req, res) => {
   try {
     const { id: targetUserId } = req.params;

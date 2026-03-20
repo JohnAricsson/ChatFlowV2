@@ -15,7 +15,9 @@ const ChatContainer = () => {
     selectedUser,
     subscribeToMessages,
     unsubscribeFromMessages,
+    isTyping,
   } = useChatStore();
+
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
@@ -32,10 +34,10 @@ const ChatContainer = () => {
   ]);
 
   useEffect(() => {
-    if (messageEndRef.current && messages) {
+    if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, isTyping]);
 
   if (isMessagesLoading) {
     return (
@@ -58,8 +60,7 @@ const ChatContainer = () => {
           return (
             <div
               key={message._id}
-              className={`chat ${isSentByMe ? "chat-end" : "chat-start"}`}
-              ref={messageEndRef}
+              className={`chat ${isSentByMe ? "chat-end" : "chat-start"} mb-4`}
             >
               <div className="chat-image avatar">
                 <div className="size-10 rounded-full border-2 border-base-100 shadow-sm overflow-hidden">
@@ -96,7 +97,6 @@ const ChatContainer = () => {
                       alt="Attachment"
                       className="rounded-xl max-h-[300px] object-cover shadow-lg border border-white/10"
                     />
-
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
                   </div>
                 )}
@@ -114,6 +114,24 @@ const ChatContainer = () => {
             </div>
           );
         })}
+
+        {isTyping && selectedUser?._id === "gemini-ai-bot" && (
+          <div className="chat chat-start mb-4">
+            <div className="chat-image avatar">
+              <div className="size-10 rounded-full border-2 border-base-100 shadow-sm overflow-hidden">
+                <img src="/avatar.png" alt="Gemini AI" />
+              </div>
+            </div>
+            <div className="chat-bubble bg-base-200/80 backdrop-blur-sm text-base-content p-3 flex items-center gap-2">
+              <span className="text-xs font-semibold opacity-70">
+                Gemini is thinking
+              </span>
+              <span className="loading loading-dots loading-xs text-primary"></span>
+            </div>
+          </div>
+        )}
+
+        <div ref={messageEndRef} />
       </div>
 
       <MessageInput />

@@ -6,6 +6,8 @@ import LoginPage from "./pages/LoginPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPage from "./pages/ResetPage";
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { axiosInstance } from "./lib/axios";
 import { useAuthStore } from "./store/useAuthStore";
@@ -57,6 +59,8 @@ const App = () => {
           element={authUser ? <ProfilePage /> : <Navigate to="/login" />}
         />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        <Route path="/reset-password/:token" element={<ResetPage />} />
       </Routes>
       <Toaster position="top-center" reverseOrder={false} />
     </div>

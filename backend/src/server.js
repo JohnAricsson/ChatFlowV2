@@ -3,6 +3,8 @@
 // npm i nodemon -D
 //npm i cors
 //npm install socket.io
+//npm install nodemailer otp-generator
+//npm install @google/genai
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -14,7 +16,7 @@ import messageRoutes from "./routes/message.route.js";
 import cors from "cors";
 import { app, server } from "./lib/socket.js";
 import "./lib/passport.js";
-
+import aiRoutes from "./routes/ai.route.js";
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 const PORT = process.env.PORT;
@@ -31,6 +33,7 @@ app.use(
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/ai", aiRoutes);
 
 server.listen(5001, () => {
   console.log("server is running on port: " + PORT);

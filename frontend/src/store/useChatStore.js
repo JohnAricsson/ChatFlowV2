@@ -12,6 +12,7 @@ export const useChatStore = create((set, get) => ({
   searchResults: [],
   isSearching: false,
   pinnedChats: [],
+  isTyping: false,
 
   getUsers: async () => {
     set({ isUsersLoading: true });
@@ -35,6 +36,7 @@ export const useChatStore = create((set, get) => ({
   },
 
   getMessages: async (userId) => {
+    if (userId === "gemini-ai-bot") return;
     set({ isMessagesLoading: true });
     try {
       const res = await axiosInstance.get(`/messages/${userId}`);
@@ -45,18 +47,46 @@ export const useChatStore = create((set, get) => ({
       set({ isMessagesLoading: false });
     }
   },
+  setMessages: (newMessages) => {
+    set({ messages: newMessages, isMessagesLoading: false });
+  },
+
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
+    const authUser = useAuthStore.getState().authUser;
+    if (selectedUser?._id === "gemini-ai-bot") {
+      const userMsg = {
+        _id: Date.now().toString(),
+        text: messageData.text,
+        senderId: authUser._id,
+        createdAt: new Date().toISOString(),
+      };
+
+      set({ messages: [...messages, userMsg] });
+
+      try {
+        const res = await axiosInstance.post("/ai/gemini", {
+          prompt: messageData.text,
+        });
+
+        set({ messages: [...get().messages, res.data] });
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Gemini failed");
+      }
+      return;
+    }
+
     try {
       const res = await axiosInstance.post(
         `/messages/send/${selectedUser._id}`,
         messageData,
       );
-      set({ messages: [...messages, res.data] });
+      set({ messages: [...get().messages, res.data] });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to send message");
     }
   },
+
   searchUsers: async (query) => {
     if (!query) return set({ searchResults: [] });
     set({ isSearching: true });
@@ -107,14 +137,29 @@ export const useChatStore = create((set, get) => ({
 
   setSelectedUser: (user) => {
     const { users } = get();
-    if (user && !users.find((u) => u._id === user._id)) {
+    if (
+      user &&
+      user._id !== "gemini-ai-bot" &&
+      !users.find((u) => u._id === user._id)
+    ) {
       set({ users: [user, ...users] });
     }
 
     set({ selectedUser: user });
 
     if (user) {
-      get().getMessages(user._id);
+      if (user._id === "gemini-ai-bot") {
+        get().setMessages([
+          {
+            _id: "ai-welcome",
+            text: "Hello! I'm your AI assisstant. How can I help you today?",
+            senderId: "gemini-ai-bot",
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+      } else {
+        get().getMessages(user._id);
+      }
     }
   },
 

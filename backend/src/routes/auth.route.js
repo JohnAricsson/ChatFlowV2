@@ -7,9 +7,14 @@ import {
   signup,
   updateProfile,
   deleteProfile,
+  verifyEmail,
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/middleware.js";
 import { generateToken } from "../lib/utils.js";
+import {
+  forgotPassword,
+  resetPassword,
+} from "../controllers/forgot.password.js";
 
 const router = express.Router();
 
@@ -19,7 +24,12 @@ router.post("/logout", logout);
 router.put("/update-profile", protectRoute, updateProfile);
 router.delete("/delete-profile", protectRoute, deleteProfile);
 router.get("/check", protectRoute, checkAuth);
+router.post("/verify-email", verifyEmail);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
+//redirect uri - http://localhost:5001/api/auth/google/callback
+//Facebook doesnt need localhost uri
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -27,25 +37,27 @@ router.get(
     prompt: "select_account",
   }),
 );
-//redirect uri - http://localhost:5001/api/auth/google/callback
-//Facebook doesnt need localhost uri
-http: router.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: "http://localhost:5173/login",
-  }),
-  (req, res) => {
-    try {
-      generateToken(req.user._id, res);
 
+router.get("/google/callback", (req, res, next) => {
+  passport.authenticate("google", { session: false }, (err, user, info) => {
+    if (err)
+      return res.redirect("http://localhost:5173/login?error=server_error");
+
+    if (!user && info?.message === "email_exists_other_provider") {
+      return res.redirect("http://localhost:5173/login?error=duplicate_email");
+    }
+
+    if (!user)
+      return res.redirect("http://localhost:5173/login?error=google_failed");
+
+    try {
+      generateToken(user._id, res);
       res.redirect("http://localhost:5173/");
     } catch (error) {
-      console.error("Google Auth Callback Error:", error);
-      res.redirect("http://localhost:5173/login?error=auth_failed");
+      res.redirect("http://localhost:5173/login?error=server_error");
     }
-  },
-);
+  })(req, res, next);
+});
 
 router.get(
   "/facebook",
@@ -54,22 +66,25 @@ router.get(
   }),
 );
 
-router.get(
-  "/facebook/callback",
-  passport.authenticate("facebook", {
-    session: false,
-    failureRedirect: "http://localhost:5173/login",
-  }),
-  (req, res) => {
-    try {
-      generateToken(req.user._id, res);
+router.get("/facebook/callback", (req, res, next) => {
+  passport.authenticate("facebook", { session: false }, (err, user, info) => {
+    if (err)
+      return res.redirect("http://localhost:5173/login?error=server_error");
 
+    if (!user && info?.message === "email_exists_other_provider") {
+      return res.redirect("http://localhost:5173/login?error=duplicate_email");
+    }
+
+    if (!user)
+      return res.redirect("http://localhost:5173/login?error=facebook_failed");
+
+    try {
+      generateToken(user._id, res);
       res.redirect("http://localhost:5173/");
     } catch (error) {
-      console.error("Facebook Auth Callback Error:", error);
-      res.redirect("http://localhost:5173/login?error=auth_failed");
+      res.redirect("http://localhost:5173/login?error=server_error");
     }
-  },
-);
+  })(req, res, next);
+});
 
 export default router;
