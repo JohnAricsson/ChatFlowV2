@@ -24,7 +24,6 @@ const PORT = process.env.PORT;
 app.use(express.json());
 app.use(cookieParser());
 //use cors for frontend to communicate with backend because both are on different ports
-const cors = require("cors");
 
 app.use(
   cors({
