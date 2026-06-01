@@ -23,10 +23,16 @@ const LoginPage = () => {
     email: "",
     password: "",
   });
-  const { login, loginWithGoogle, loginWithFacebook, isLoggingIn } =
-    useAuthStore();
+
+  const { login, isLoggingIn } = useAuthStore();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // Dynamic absolute base backend path selection
+  const BACKEND_URL = import.meta.env.PROD
+    ? "https://chatflowv2-backend.onrender.com"
+    : "http://localhost:5001";
+
   useEffect(() => {
     const errorType = searchParams.get("error");
 
@@ -51,6 +57,7 @@ const LoginPage = () => {
       navigate("/login", { replace: true });
     }
   }, [searchParams, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
@@ -61,9 +68,19 @@ const LoginPage = () => {
       setShowVerify(true);
     }
   };
+
+  const handleFacebookLogin = () => {
+    window.location.href = `${BACKEND_URL}/api/auth/facebook`;
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${BACKEND_URL}/api/auth/google`;
+  };
+
   if (showVerify) {
     return <VerifyEmailPage email={formData.email} />;
   }
+
   return (
     <div className="min-h-screen bg-base-300 relative overflow-hidden flex items-center justify-center p-4">
       <div className="absolute top-[-10%] right-[-10%] w-[45%] h-[45%] rounded-full bg-secondary/20 blur-[120px] animate-pulse" />
@@ -122,7 +139,6 @@ const LoginPage = () => {
                   </label>
                   <Link
                     to="/forgot-password"
-                    size="xs"
                     className="text-xs text-primary hover:underline font-medium"
                   >
                     Forgot password?
@@ -180,7 +196,8 @@ const LoginPage = () => {
 
             <div className="grid grid-cols-2 gap-3 mb-8">
               <button
-                onClick={loginWithFacebook}
+                type="button"
+                onClick={handleFacebookLogin}
                 className="flex items-center justify-center py-3 cursor-pointer bg-blue-600 border border-blue-700 rounded-xl hover:bg-blue-700 text-white"
               >
                 <svg
@@ -194,7 +211,8 @@ const LoginPage = () => {
               </button>
 
               <button
-                onClick={loginWithGoogle}
+                type="button"
+                onClick={handleGoogleLogin}
                 className="flex items-center justify-center py-3 cursor-pointer bg-white border border-gray-300 rounded-xl hover:bg-gray-300 text-gray-800"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 533.5 544.3">
