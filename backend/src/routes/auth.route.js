@@ -18,6 +18,11 @@ import {
 
 const router = express.Router();
 
+const isProduction = process.env.NODE_ENV === "production";
+const FRONTEND_URL = isProduction
+  ? "https://chatflowv2.onrender.com"
+  : "http://localhost:5173";
+
 router.post("/signup", signup);
 router.post("/login", login);
 router.post("/logout", logout);
@@ -28,8 +33,7 @@ router.post("/verify-email", verifyEmail);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 
-//redirect uri - http://localhost:5001/api/auth/google/callback
-//Facebook doesnt need localhost uri
+// Google Authentication Route
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -38,27 +42,27 @@ router.get(
   }),
 );
 
+// Google Callback Route
 router.get("/google/callback", (req, res, next) => {
   passport.authenticate("google", { session: false }, (err, user, info) => {
-    if (err)
-      return res.redirect("http://localhost:5173/login?error=server_error");
+    if (err) return res.redirect(`${FRONTEND_URL}/login?error=server_error`);
 
     if (!user && info?.message === "email_exists_other_provider") {
-      return res.redirect("http://localhost:5173/login?error=duplicate_email");
+      return res.redirect(`${FRONTEND_URL}/login?error=duplicate_email`);
     }
 
-    if (!user)
-      return res.redirect("http://localhost:5173/login?error=google_failed");
+    if (!user) return res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
 
     try {
       generateToken(user._id, res);
-      res.redirect("http://localhost:5173/");
+      res.redirect(`${FRONTEND_URL}/`);
     } catch (error) {
-      res.redirect("http://localhost:5173/login?error=server_error");
+      res.redirect(`${FRONTEND_URL}/login?error=server_error`);
     }
   })(req, res, next);
 });
 
+// Facebook Authentication Route
 router.get(
   "/facebook",
   passport.authenticate("facebook", {
@@ -66,23 +70,23 @@ router.get(
   }),
 );
 
+// Facebook Callback Route
 router.get("/facebook/callback", (req, res, next) => {
   passport.authenticate("facebook", { session: false }, (err, user, info) => {
-    if (err)
-      return res.redirect("http://localhost:5173/login?error=server_error");
+    if (err) return res.redirect(`${FRONTEND_URL}/login?error=server_error`);
 
     if (!user && info?.message === "email_exists_other_provider") {
-      return res.redirect("http://localhost:5173/login?error=duplicate_email");
+      return res.redirect(`${FRONTEND_URL}/login?error=duplicate_email`);
     }
 
     if (!user)
-      return res.redirect("http://localhost:5173/login?error=facebook_failed");
+      return res.redirect(`${FRONTEND_URL}/login?error=facebook_failed`);
 
     try {
       generateToken(user._id, res);
-      res.redirect("http://localhost:5173/");
+      res.redirect(`${FRONTEND_URL}/`);
     } catch (error) {
-      res.redirect("http://localhost:5173/login?error=server_error");
+      res.redirect(`${FRONTEND_URL}/login?error=server_error`);
     }
   })(req, res, next);
 });
