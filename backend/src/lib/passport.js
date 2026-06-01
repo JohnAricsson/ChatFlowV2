@@ -3,13 +3,20 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import User from "../models/user.model.js";
 
+// Fallback absolute URLs for Render if relative paths give you trouble
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5000";
+
 // GOOGLE STRATEGY
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/auth/google/callback",
+      // Absolute URLs are safer, but keeping it relative works IF proxy is true
+      callbackURL: process.env.BACKEND_URL
+        ? `${process.env.BACKEND_URL}/api/auth/google/callback`
+        : "/api/auth/google/callback",
+      proxy: true, // 👈 CRITICAL FOR RENDER HOSTING
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -46,8 +53,11 @@ passport.use(
     {
       clientID: process.env.FACEBOOK_APP_ID,
       clientSecret: process.env.FACEBOOK_APP_SECRET,
-      callbackURL: "/api/auth/facebook/callback",
+      callbackURL: process.env.BACKEND_URL
+        ? `${process.env.BACKEND_URL}/api/auth/facebook/callback`
+        : "/api/auth/facebook/callback",
       profileFields: ["id", "displayName", "emails"],
+      proxy: true, // 👈 CRITICAL FOR RENDER HOSTING
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
