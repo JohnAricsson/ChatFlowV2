@@ -62,33 +62,4 @@ router.get("/google/callback", (req, res, next) => {
   })(req, res, next);
 });
 
-// Facebook Authentication Route
-router.get(
-  "/facebook",
-  passport.authenticate("facebook", {
-    scope: ["public_profile", "email"],
-  }),
-);
-
-// Facebook Callback Route
-router.get("/facebook/callback", (req, res, next) => {
-  passport.authenticate("facebook", { session: false }, (err, user, info) => {
-    if (err) return res.redirect(`${FRONTEND_URL}/login?error=server_error`);
-
-    if (!user && info?.message === "email_exists_other_provider") {
-      return res.redirect(`${FRONTEND_URL}/login?error=duplicate_email`);
-    }
-
-    if (!user)
-      return res.redirect(`${FRONTEND_URL}/login?error=facebook_failed`);
-
-    try {
-      generateToken(user._id, res);
-      res.redirect(`${FRONTEND_URL}/`);
-    } catch (error) {
-      res.redirect(`${FRONTEND_URL}/login?error=server_error`);
-    }
-  })(req, res, next);
-});
-
 export default router;

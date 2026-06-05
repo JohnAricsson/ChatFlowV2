@@ -66,7 +66,7 @@ export const login = async (req, res) => {
 
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    const isSocialUser = user.googleId || user.facebookId;
+    const isSocialUser = user.googleId;
 
     if (!user.isVerified && !isSocialUser) {
       return res.status(401).json({

@@ -71,10 +71,6 @@ export const useAuthStore = create((set, get) => ({
     window.location.href = `${BASE_URL}/api/auth/google`;
   },
 
-  loginWithFacebook: () => {
-    window.location.href = `${BASE_URL}/api/auth/facebook`;
-  },
-
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");

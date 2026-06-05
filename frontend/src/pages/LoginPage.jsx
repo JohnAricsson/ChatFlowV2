@@ -39,9 +39,8 @@ const LoginPage = () => {
     if (errorType) {
       const errorMessages = {
         duplicate_email:
-          "This email is already linked to another login method (Google, Facebook, or Email).",
+          "This email is already linked to another login method (Google or Email).",
         google_failed: "Google authentication was cancelled or failed.",
-        facebook_failed: "Facebook authentication was cancelled or failed.",
         server_error: "A server error occurred. Please try again later.",
         auth_failed: "Authentication failed. Please try again.",
       };
@@ -67,10 +66,6 @@ const LoginPage = () => {
     if (result?.unverified) {
       setShowVerify(true);
     }
-  };
-
-  const handleFacebookLogin = () => {
-    window.location.href = `${BACKEND_URL}/api/auth/facebook`;
   };
 
   const handleGoogleLogin = () => {
@@ -194,22 +189,7 @@ const LoginPage = () => {
               <div className="flex-1 border-t border-gray-200"></div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-8">
-              <button
-                type="button"
-                onClick={handleFacebookLogin}
-                className="flex items-center justify-center py-3 cursor-pointer bg-blue-600 border border-blue-700 rounded-xl hover:bg-blue-700 text-white"
-              >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2v-3h2v-2.3c0-2 1.2-3.1 3-3.1.9 0 1.8.2 1.8.2v2h-1c-1 0-1.3.6-1.3 1.2V12h2.2l-.3 3h-1.9v7A10 10 0 0 0 22 12z" />
-                </svg>
-                Facebook
-              </button>
-
+            <div className="grid grid-cols-1 gap-3 mb-8">
               <button
                 type="button"
                 onClick={handleGoogleLogin}
