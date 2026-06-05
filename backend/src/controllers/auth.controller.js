@@ -88,10 +88,13 @@ export const login = async (req, res) => {
 
 export const logout = (req, res) => {
   try {
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.clearCookie("jwt", {
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: isProduction ? "none" : "lax",
       secure: process.env.NODE_ENV !== "development",
+      path: "/",
     });
 
     res.status(200).json({ message: "Logged out successfully" });
