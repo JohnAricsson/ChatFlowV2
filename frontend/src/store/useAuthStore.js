@@ -68,7 +68,7 @@ export const useAuthStore = create((set, get) => ({
   },
 
   loginWithGoogle: () => {
-    window.location.href = `${BASE_URL}/api/auth/google`;
+    window.location.href = `https://chatflowv2-backend.onrender.com/api/auth/google`;
   },
 
   logout: async () => {
