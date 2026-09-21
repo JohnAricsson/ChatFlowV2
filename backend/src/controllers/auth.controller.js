@@ -80,7 +80,12 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
 
     generateToken(user._id, res);
-    res.status(200).json(user);
+
+    const userWithoutPassword = user.toObject();
+    delete userWithoutPassword.password;
+    delete userWithoutPassword.verificationOTP;
+
+    res.status(200).json(userWithoutPassword);
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }

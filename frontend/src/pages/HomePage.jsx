@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { useChatStore } from "../store/useChatStore";
 
@@ -11,10 +11,22 @@ const HomePage = () => {
     useChatStore();
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    const trimmed = searchTerm.trim();
+    if (!trimmed) {
+      useChatStore.setState({ searchResults: [] });
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      searchUsers(trimmed);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, searchUsers]);
+
   const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    searchUsers(value);
+    setSearchTerm(e.target.value);
   };
 
   return (

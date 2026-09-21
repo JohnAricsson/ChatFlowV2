@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./SidebarSkeleton";
@@ -30,20 +30,22 @@ const Sidebar = () => {
     getUsers();
   }, [getUsers]);
 
-  const filteredUsers = [GEMINI_BOT, ...users]
-    .filter((user) => {
-      if (user._id === "gemini-ai-bot") return true;
+  const filteredUsers = useMemo(() => {
+    return [GEMINI_BOT, ...users]
+      .filter((user) => {
+        if (user._id === "gemini-ai-bot") return true;
 
-      return showOnlineOnly ? onlineUsers.includes(user._id) : true;
-    })
-    .sort((a, b) => {
-      if (a._id === "gemini-ai-bot") return -1;
-      if (b._id === "gemini-ai-bot") return 1;
+        return showOnlineOnly ? onlineUsers.includes(user._id) : true;
+      })
+      .sort((a, b) => {
+        if (a._id === "gemini-ai-bot") return -1;
+        if (b._id === "gemini-ai-bot") return 1;
 
-      const aPinned = pinnedChats?.includes(a._id) || false;
-      const bPinned = pinnedChats?.includes(b._id) || false;
-      return bPinned - aPinned;
-    });
+        const aPinned = pinnedChats?.includes(a._id) || false;
+        const bPinned = pinnedChats?.includes(b._id) || false;
+        return bPinned - aPinned;
+      });
+  }, [users, showOnlineOnly, onlineUsers, pinnedChats]);
 
   if (isUsersLoading) return <SidebarSkeleton />;
 
@@ -134,34 +136,36 @@ const Sidebar = () => {
                 </div>
               </button>
 
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1 bg-base-100 shadow-xl border border-base-300 p-1.5 rounded-xl z-10">
-                <button
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    pinChat(user._id);
-                  }}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    isPinned
-                      ? "text-primary bg-primary/10"
-                      : "text-base-content/40 hover:text-primary hover:bg-primary/10"
-                  }`}
-                >
-                  {isPinned ? (
-                    <PinOff className="size-3.5" />
-                  ) : (
-                    <Pin className="size-3.5" />
-                  )}
-                </button>
-                <button
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    removeChat(user._id);
-                  }}
-                  className="p-1.5 text-base-content/40 hover:text-error hover:bg-error/10 rounded-lg transition-colors"
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
-              </div>
+              {user._id !== "gemini-ai-bot" && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1 bg-base-100 shadow-xl border border-base-300 p-1.5 rounded-xl z-10">
+                  <button
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      pinChat(user._id);
+                    }}
+                    className={`p-1.5 rounded-lg transition-colors ${
+                      isPinned
+                        ? "text-primary bg-primary/10"
+                        : "text-base-content/40 hover:text-primary hover:bg-primary/10"
+                    }`}
+                  >
+                    {isPinned ? (
+                      <PinOff className="size-3.5" />
+                    ) : (
+                      <Pin className="size-3.5" />
+                    )}
+                  </button>
+                  <button
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      removeChat(user._id);
+                    }}
+                    className="p-1.5 text-base-content/40 hover:text-error hover:bg-error/10 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}

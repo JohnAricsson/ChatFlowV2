@@ -62,7 +62,7 @@ export const useChatStore = create((set, get) => ({
         createdAt: new Date().toISOString(),
       };
 
-      set({ messages: [...messages, userMsg] });
+      set({ messages: [...messages, userMsg], isTyping: true });
 
       try {
         const res = await axiosInstance.post("/ai/gemini", {
@@ -72,6 +72,8 @@ export const useChatStore = create((set, get) => ({
         set({ messages: [...get().messages, res.data] });
       } catch (error) {
         toast.error(error.response?.data?.message || "Gemini failed");
+      } finally {
+        set({ isTyping: false });
       }
       return;
     }
@@ -165,9 +167,12 @@ export const useChatStore = create((set, get) => ({
 
   subscribeToMessages: () => {
     const { selectedUser } = get();
-    if (!selectedUser) return;
+    if (!selectedUser || selectedUser._id === "gemini-ai-bot") return;
 
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
+
+    socket.off("newMessage");
 
     socket.on("newMessage", (newMessage) => {
       const isMessageSentFromSelectedUser =
@@ -182,6 +187,6 @@ export const useChatStore = create((set, get) => ({
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
-    socket.off("newMessage");
+    socket?.off("newMessage");
   },
 }));

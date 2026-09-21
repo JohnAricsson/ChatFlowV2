@@ -8,11 +8,11 @@ export const getUsersForSidebar = async (req, res) => {
   try {
     const myId = req.user._id;
 
-    const me = await User.findById(myId).select("pinnedChats");
+    const me = await User.findById(myId).select("pinnedChats hiddenChats");
 
     const messages = await Message.find({
       $or: [{ senderId: myId }, { receiverId: myId }],
-    });
+    }).select("senderId receiverId");
 
     const chattedUserIds = messages.map((msg) =>
       msg.senderId.toString() === myId.toString()
@@ -20,8 +20,16 @@ export const getUsersForSidebar = async (req, res) => {
         : msg.senderId,
     );
 
+    const hiddenSet = new Set(
+      (me?.hiddenChats || []).map((id) => id.toString()),
+    );
+
     const uniqueChattedIds = [
-      ...new Set(chattedUserIds.map((id) => id.toString())),
+      ...new Set(
+        chattedUserIds
+          .map((id) => id.toString())
+          .filter((id) => !hiddenSet.has(id)),
+      ),
     ];
 
     const users = await User.find({

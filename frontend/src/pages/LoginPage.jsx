@@ -24,14 +24,9 @@ const LoginPage = () => {
     password: "",
   });
 
-  const { login, isLoggingIn } = useAuthStore();
+  const { login, isLoggingIn, loginWithGoogle } = useAuthStore();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
-  // Dynamic absolute base backend path selection
-  const BACKEND_URL = import.meta.env.PROD
-    ? "https://chatflowv2-backend.onrender.com"
-    : "http://localhost:5001";
 
   useEffect(() => {
     const errorType = searchParams.get("error");
@@ -69,7 +64,7 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${BACKEND_URL}/api/auth/google`;
+    loginWithGoogle();
   };
 
   if (showVerify) {

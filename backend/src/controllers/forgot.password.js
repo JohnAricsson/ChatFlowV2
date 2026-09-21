@@ -23,7 +23,13 @@ export const forgotPassword = async (req, res) => {
       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
     });
 
-    const resetUrl = `http://localhost:5173/reset-password/${token}`;
+    const isProduction = process.env.NODE_ENV === "production";
+    const clientUrl =
+      process.env.CLIENT_URL ||
+      (isProduction
+        ? "https://chatflowv2.onrender.com"
+        : "http://localhost:5173");
+    const resetUrl = `${clientUrl}/reset-password/${token}`;
 
     await transporter.sendMail({
       from: `"ChatFlow Support" <${process.env.EMAIL_USER}>`,

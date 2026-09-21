@@ -5,7 +5,9 @@ import { useChatStore } from "../store/useChatStore";
 const ChatHeader = () => {
   const { selectedUser, setSelectedUser } = useChatStore();
   const { onlineUsers } = useAuthStore();
-  const isOnline = onlineUsers.includes(selectedUser._id);
+  const isOnline =
+    selectedUser?._id === "gemini-ai-bot" ||
+    onlineUsers.includes(selectedUser?._id);
 
   return (
     <div className="p-4 border-b border-white/5 bg-base-100/50 backdrop-blur-md">

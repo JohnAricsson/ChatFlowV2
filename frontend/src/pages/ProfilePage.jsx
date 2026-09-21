@@ -36,7 +36,6 @@ const ProfilePage = () => {
   const [fullName, setFullName] = useState(authUser?.fullName || "");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -77,10 +76,6 @@ const ProfilePage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirmDelete) {
-      setConfirmDelete(true);
-      return;
-    }
     await deleteAccount();
   };
 
